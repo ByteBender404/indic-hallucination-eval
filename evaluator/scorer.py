@@ -1,26 +1,27 @@
 import numpy as np
-from sklearn.metrics.pairwise import cosine_similarity
-from evaluator.embeddings import get_embedding
+from .embeddings import embed
 
-def calculate_cosine_similarity(text1: str, text2: str) -> float:
-    """Calculates cosine similarity between two texts."""
-    emb1 = np.array(get_embedding(text1)).reshape(1, -1)
-    emb2 = np.array(get_embedding(text2)).reshape(1, -1)
-    return float(cosine_similarity(emb1, emb2)[0][0])
+def cosine_similarity(a, b):
+    return float(np.dot(a, b))
 
-def evaluate_answer(question: str, answer: str, source: str, ground_truth: str) -> dict:
-    """Evaluates the answer based on faithfulness, relevance, and consistency."""
-    faithfulness = calculate_cosine_similarity(answer, source)
-    relevance = calculate_cosine_similarity(question, answer)
-    consistency = calculate_cosine_similarity(answer, ground_truth)
-    
-    overall = (faithfulness + relevance + consistency) / 3.0
-    verdict = "PASS" if overall >= 0.7 else "FLAG"
-    
+def faithfulness_score(answer: str, source: str) -> float:
+    return round(cosine_similarity(embed(answer), embed(source)), 4)
+
+def relevance_score(question: str, answer: str) -> float:
+    return round(cosine_similarity(embed(question), embed(answer)), 4)
+
+def consistency_score(answer: str, ground_truth: str) -> float:
+    return round(cosine_similarity(embed(answer), embed(ground_truth)), 4)
+
+def evaluate(question: str, answer: str, source: str, ground_truth: str) -> dict:
+    faith = faithfulness_score(answer, source)
+    relevance = relevance_score(question, answer)
+    consistency = consistency_score(answer, ground_truth)
+    overall = round((faith + relevance + consistency) / 3, 4)
     return {
-        "faithfulness_score": round(faithfulness, 4),
-        "relevance_score": round(relevance, 4),
-        "consistency_score": round(consistency, 4),
-        "overall_score": round(overall, 4),
-        "verdict": verdict
+        "faithfulness_score": faith,
+        "relevance_score": relevance,
+        "consistency_score": consistency,
+        "overall_score": overall,
+        "verdict": "PASS" if overall >= 0.7 else "FLAG"
     }

@@ -1,7 +1,9 @@
 fastapi
 uvicorn
-sentence-transformers
 numpy
 pytest
 scikit-learn
 pydantic
+onnxruntime
+huggingface-hub
+tokenizers
