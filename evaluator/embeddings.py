@@ -1,5 +1,5 @@
-from tokenizers import Tokenizer
 from huggingface_hub import hf_hub_download
+from tokenizers import Tokenizer
 import numpy as np
 import onnxruntime as ort
 
@@ -10,11 +10,11 @@ def get_model():
     global _session, _tokenizer
     if _session is None:
         model_path = hf_hub_download(
-            repo_id="optimum/paraphrase-multilingual-MiniLM-L12-v2",
-            filename="model.onnx"
+            repo_id="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+            filename="onnx/model.onnx"
         )
         tokenizer_path = hf_hub_download(
-            repo_id="optimum/paraphrase-multilingual-MiniLM-L12-v2",
+            repo_id="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
             filename="tokenizer.json"
         )
         _session = ort.InferenceSession(model_path)
@@ -34,7 +34,6 @@ def embed(text: str):
         "attention_mask": attention_mask,
         "token_type_ids": token_type_ids
     })
-    # mean pooling
     embedding = outputs[0][0].mean(axis=0)
     norm = np.linalg.norm(embedding)
     return embedding / norm if norm > 0 else embedding
