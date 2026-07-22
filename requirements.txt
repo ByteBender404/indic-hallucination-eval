@@ -4,6 +4,3 @@ numpy
 pytest
 scikit-learn
 pydantic
-onnxruntime
-huggingface-hub
-tokenizers

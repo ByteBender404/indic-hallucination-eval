@@ -1,43 +1,38 @@
-from huggingface_hub import hf_hub_download
-from tokenizers import Tokenizer
 import numpy as np
-import onnxruntime as ort
-import logging
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.preprocessing import normalize
 
-logger = logging.getLogger(__name__)
+_vectorizer = None
+_corpus = []
 
-_session = None
-_tokenizer = None
-
-def load_model():
-    global _session, _tokenizer
-    logger.info("Downloading ONNX model from Hugging Face...")
-    model_path = hf_hub_download(
-        repo_id="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
-        filename="onnx/model.onnx"
-    )
-    tokenizer_path = hf_hub_download(
-        repo_id="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
-        filename="tokenizer.json"
-    )
-    _session = ort.InferenceSession(model_path)
-    _tokenizer = Tokenizer.from_file(tokenizer_path)
-    logger.info("Model loaded successfully.")
+def get_vectorizer():
+    global _vectorizer
+    if _vectorizer is None:
+        _vectorizer = TfidfVectorizer(
+            analyzer='char_wb',
+            ngram_range=(2, 4),
+            max_features=10000,
+            sublinear_tf=True
+        )
+        # fit on a small seed corpus so it's ready
+        seed = [
+            "यह एक परीक्षण वाक्य है",
+            "this is a test sentence",
+            "இது ஒரு சோதனை வாக்கியம்",
+            "hello world example text",
+            "भारत एक महान देश है"
+        ]
+        _vectorizer.fit(seed)
+    return _vectorizer
 
 def embed(text: str):
-    tokenizer = _tokenizer
-    session = _session
-    tokenizer.enable_padding(length=128)
-    tokenizer.enable_truncation(max_length=128)
-    encoding = tokenizer.encode(text)
-    input_ids = np.array([encoding.ids], dtype=np.int64)
-    attention_mask = np.array([encoding.attention_mask], dtype=np.int64)
-    token_type_ids = np.zeros_like(input_ids)
-    outputs = session.run(None, {
-        "input_ids": input_ids,
-        "attention_mask": attention_mask,
-        "token_type_ids": token_type_ids
-    })
-    embedding = outputs[0][0].mean(axis=0)
-    norm = np.linalg.norm(embedding)
-    return embedding / norm if norm > 0 else embedding
+    vectorizer = get_vectorizer()
+    try:
+        vec = vectorizer.transform([text]).toarray()[0]
+    except Exception:
+        vectorizer.fit([text])
+        vec = vectorizer.transform([text]).toarray()[0]
+    norm = np.linalg.norm(vec)
+    if norm == 0:
+        return vec
+    return vec / norm

@@ -1,19 +1,15 @@
 from fastapi import FastAPI
-from contextlib import asynccontextmanager
 from api.models import EvaluationRequest, EvaluationResponse
 from evaluator.scorer import evaluate
-from evaluator.embeddings import load_model
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    load_model()
-    yield
+from evaluator.embeddings import get_vectorizer
 
 app = FastAPI(
     title="Indic Hallucination Eval API",
-    description="API to evaluate LLM answers in Hindi and Tamil for faithfulness, relevance, and consistency.",
-    lifespan=lifespan
+    description="API to evaluate LLM answers in Hindi and Tamil for faithfulness, relevance, and consistency."
 )
+
+# warm up on startup
+get_vectorizer()
 
 @app.post("/evaluate", response_model=EvaluationResponse)
 def evaluate_endpoint(request: EvaluationRequest):
