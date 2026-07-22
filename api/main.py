@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from api.models import EvaluationRequest, EvaluationResponse
-from evaluator.scorer import evaluate_answer
+from evaluator.scorer import evaluate
 
 app = FastAPI(
     title="Indic Hallucination Eval API",
@@ -9,7 +9,7 @@ app = FastAPI(
 
 @app.post("/evaluate", response_model=EvaluationResponse)
 def evaluate_endpoint(request: EvaluationRequest):
-    result = evaluate_answer(
+    result = evaluate(
         question=request.question,
         answer=request.answer,
         source=request.source,
