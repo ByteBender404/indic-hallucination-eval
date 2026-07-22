@@ -1,7 +1,7 @@
 import json
 import os
 import pytest
-from evaluator.scorer import evaluate_answer
+from evaluator.scorer import evaluate
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HINDI_DATASET_PATH = os.path.join(BASE_DIR, "dataset", "hindi_samples.json")
@@ -16,7 +16,7 @@ tamil_samples = load_dataset(TAMIL_DATASET_PATH)
 
 @pytest.mark.parametrize("sample", hindi_samples + tamil_samples)
 def test_evaluation(sample):
-    result = evaluate_answer(
+    result = evaluate(
         question=sample["question"],
         answer=sample["answer"],
         source=sample["source"],
