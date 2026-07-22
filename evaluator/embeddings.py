@@ -2,27 +2,31 @@ from huggingface_hub import hf_hub_download
 from tokenizers import Tokenizer
 import numpy as np
 import onnxruntime as ort
+import logging
+
+logger = logging.getLogger(__name__)
 
 _session = None
 _tokenizer = None
 
-def get_model():
+def load_model():
     global _session, _tokenizer
-    if _session is None:
-        model_path = hf_hub_download(
-            repo_id="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
-            filename="onnx/model.onnx"
-        )
-        tokenizer_path = hf_hub_download(
-            repo_id="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
-            filename="tokenizer.json"
-        )
-        _session = ort.InferenceSession(model_path)
-        _tokenizer = Tokenizer.from_file(tokenizer_path)
-    return _session, _tokenizer
+    logger.info("Downloading ONNX model from Hugging Face...")
+    model_path = hf_hub_download(
+        repo_id="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+        filename="onnx/model.onnx"
+    )
+    tokenizer_path = hf_hub_download(
+        repo_id="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+        filename="tokenizer.json"
+    )
+    _session = ort.InferenceSession(model_path)
+    _tokenizer = Tokenizer.from_file(tokenizer_path)
+    logger.info("Model loaded successfully.")
 
 def embed(text: str):
-    session, tokenizer = get_model()
+    tokenizer = _tokenizer
+    session = _session
     tokenizer.enable_padding(length=128)
     tokenizer.enable_truncation(max_length=128)
     encoding = tokenizer.encode(text)
