@@ -1,3 +1,3 @@
-from .scorer import evaluate_answer
+from .scorer import evaluate
 
-__all__ = ["evaluate_answer"]
+__all__ = ["evaluate"]
