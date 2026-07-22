@@ -1,4 +1,5 @@
 # Indic Hallucination Eval
+🚀 **Live Demo:** https://indic-hallucination-eval.onrender.com/docs
 
 A Python library and REST API to evaluate whether an LLM's answer in Hindi or Tamil is faithful to a source document. It uses SentenceTransformers (`paraphrase-multilingual-MiniLM-L12-v2`) to calculate embedding similarities.
 
